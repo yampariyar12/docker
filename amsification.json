@@ -1,0 +1,643 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Parameters": {
+        "ASGScaleUpPolicyStatistic": {
+            "AllowedValues": [
+                "SampleCount",
+                "Average",
+                "Sum",
+                "Minimum",
+                "Maximum"
+            ],
+            "Type": "String",
+            "Description": "The statistic to apply to the alarm's associated metric.",
+            "Default": "Average"
+        },
+        "ASGInstanceRootVolumeName": {
+            "Default": "/dev/xvda",
+            "Description": "The name of the root volume to use (Defaults to /dev/xvda for Linux, and /dev/sda for Windows).",
+            "Type": "String"
+        },
+        "ASGMaxInstances": {
+            "Default": "1",
+            "Description": "The maximum size of the Auto Scaling group.",
+            "Type": "String"
+        },
+        "ASGCooldown": {
+            "Default": "300",
+            "Description": "The number of seconds after a scaling activity is completed before any further scaling activities can start.",
+            "Type": "String"
+        },
+        "ASGScaleDownPolicyEvaluationPeriods": {
+            "Type": "String",
+            "Description": "The number of periods over which data is compared to the specified threshold.",
+            "Default": "4"
+        },
+        "ASGScaleUpPolicyPeriod": {
+            "Type": "String",
+            "Description": "The time over which the specified statistic is applied. You must specify a time in seconds that is also a multiple of 60.",
+            "Default": "60"
+        },
+        "ASGHealthCheckGracePeriod": {
+            "Default": "600",
+            "Description": "The length of time in seconds after a new EC2 instance comes into service that Auto Scaling starts checking its health.",
+            "Type": "String"
+        },
+        "ASGInstanceDetailedMonitoring": {
+            "AllowedValues": [
+                "true",
+                "false"
+            ],
+            "Default": "true",
+            "Description": "Whether to enable detailed monitoring on the instances in the Auto Scaling Group.",
+            "Type": "String"
+        },
+        "ASGAmiId": {
+            "Default": "ami-006c6668e16913f83",
+            "Description": "The AMI ID for the Auto Scaling Group to utilize.",
+            "Type": "String"
+        },
+        "ASGMinInstancesInService": {
+            "Default": "1",
+            "Description": "Specifies the minimum number of instances that must be in service within the Auto Scaling group while AWS CloudFormation updates old instances.",
+            "Type": "Number"
+        },
+        "ASGScaleDownPolicyScalingAdjustment": {
+            "Type": "String",
+            "Description": "The number of instances by which to scale.",
+            "Default": "-1"
+        },
+        "ASGScaleUpMetricName": {
+            "AllowedValues": [
+                "CPUCreditUsage",
+                "CPUCreditBalance",
+                "CPUUtilization",
+                "DiskReadOps",
+                "DiskWriteOps",
+                "DiskReadBytes",
+                "DiskWriteBytes",
+                "NetworkIn",
+                "NetworkOut",
+                "StatusCheckFailed",
+                "StatusCheckFailed_Instance",
+                "StatusCheckFailed_System"
+            ],
+            "Type": "String",
+            "Description": "The name for the alarm's associated metric.",
+            "Default": "CPUUtilization"
+        },
+        "ASGScaleUpPolicyThreshold": {
+            "Type": "String",
+            "Description": "The value against which the specified statistic is compared.",
+            "Default": "75"
+        },
+        "ASGLoadBalancerNames": {
+            "Default": "",
+            "Description": "A list of load balancers associated with this Auto Scaling group.",
+            "Type": "CommaDelimitedList"
+        },
+        "ASGScaleUpPolicyEvaluationPeriods": {
+            "Type": "String",
+            "Description": "The number of periods over which data is compared to the specified threshold.",
+            "Default": "2"
+        },
+        "ASGScaleDownPolicyStatistic": {
+            "AllowedValues": [
+                "SampleCount",
+                "Average",
+                "Sum",
+                "Minimum",
+                "Maximum"
+            ],
+            "Type": "String",
+            "Description": "The statistic to apply to the alarm's associated metric.",
+            "Default": "Average"
+        },
+        "ASGEBSOptimized": {
+            "AllowedValues": [
+                "true",
+                "false"
+            ],
+            "Default": "false",
+            "Description": "Specifies whether the instance is optimized for Amazon Elastic Block Store I/O. This optimization provides dedicated throughput to Amazon EBS and an optimized configuration stack to provide optimal EBS I/O performance.",
+            "Type": "String"
+        },
+        "ASGScaleDownMetricName": {
+            "AllowedValues": [
+                "CPUCreditUsage",
+                "CPUCreditBalance",
+                "CPUUtilization",
+                "DiskReadOps",
+                "DiskWriteOps",
+                "DiskReadBytes",
+                "DiskWriteBytes",
+                "NetworkIn",
+                "NetworkOut",
+                "StatusCheckFailed",
+                "StatusCheckFailed_Instance",
+                "StatusCheckFailed_System"
+            ],
+            "Type": "String",
+            "Description": "The name for the alarm's associated metric.",
+            "Default": "CPUUtilization"
+        },
+        "ASGHealthCheckType": {
+            "AllowedValues": [
+                "EC2",
+                "ELB"
+            ],
+            "Type": "String",
+            "Description": "The service to use for the health checks. If ASGHealthCheckType = ELB, ensure that your ASGHealthCheckGracePeriod value is long enough so that your instances are not terminated due to load-balancer health checks failing, before your application has been deployed.",
+            "Default": "EC2"
+        },
+        "ASGMaxBatchSize": {
+            "Default": "1",
+            "Description": "Specifies the maximum number of Auto Scaling instances that AWS CloudFormation updates at a time.",
+            "Type": "Number"
+        },
+        "ASGMinInstances": {
+            "Default": "1",
+            "Description": "The minimum size of the Auto Scaling group.",
+            "Type": "String"
+        },
+        "ASGInstanceType": {
+            "Default": "t2.micro",
+            "Description": "The instance type of the EC2 instances in the Auto Scaling Group.",
+            "Type": "String"
+        },
+        "ASGInstanceRootVolumeIops": {
+            "Default": 0,
+            "MaxValue": 20000,
+            "Description": "The Iops to use for the root volume if io1 volume type is specified.",
+            "Type": "Number",
+            "MinValue": 0
+        },
+        "ASGIAMInstanceProfile": {
+            "Default": "customer-mc-ec2-instance-profile",
+            "Description": "The IAM Instance profile for the Auto Scaling group.",
+            "Type": "String"
+        },
+        "ASGInstanceRootVolumeType": {
+            "AllowedValues": [
+                "standard",
+                "io1",
+                "gp2"
+            ],
+            "Default": "standard",
+            "Description": "The type of the root volume for the instance.",
+            "Type": "String"
+        },
+        "ASGScaleDownPolicyThreshold": {
+            "Type": "String",
+            "Description": "The value against which the specified statistic is compared.",
+            "Default": "35"
+        },
+        "ASGDesiredCapacity": {
+            "Default": "1",
+            "Description": "The desired capacity for the Auto Scaling group.",
+            "Type": "String"
+        },
+        "ASGScaleUpPolicyScalingAdjustment": {
+            "Type": "String",
+            "Description": "The number of instances by which to scale.",
+            "Default": "2"
+        },
+        "ASGScaleDownPolicyCooldown": {
+            "Type": "String",
+            "Description": "The amount of time, in seconds, after a scaling activity completes before any further trigger-related scaling activities can start.",
+            "Default": "300"
+        },
+        "ASGSubnetIds": {
+            "Default": "subnet-fdaf50a5",
+            "Description": "List of Subnet IDs for the Auto Scaling Group to utilize.",
+            "Type": "List<AWS::EC2::Subnet::Id>"
+        },
+        "ASGScaleUpPolicyCooldown": {
+            "Type": "String",
+            "Description": "The amount of time, in seconds, after a scaling activity completes before any further trigger-related scaling activities can start.",
+            "Default": "60"
+        },
+        "ASGInstanceRootVolumeSize": {
+            "Default": 8,
+            "MaxValue": 16000,
+            "Description": "The size of the root volume for the instance. For Linux this will default to 8GiB, and 30GiB for Windows.",
+            "Type": "Number",
+            "MinValue": 8
+        },
+        "ASGScaleDownPolicyPeriod": {
+            "Type": "String",
+            "Description": "The period in seconds over which the specified statistic is applied.",
+            "Default": "60"
+        }
+    },
+    "Resources": {
+        "ASGAlarmHigh": {
+            "Type": "AWS::CloudWatch::Alarm",
+            "Properties": {
+                "Period": {
+                    "Ref": "ASGScaleUpPolicyPeriod"
+                },
+                "EvaluationPeriods": {
+                    "Ref": "ASGScaleUpPolicyEvaluationPeriods"
+                },
+                "Threshold": {
+                    "Ref": "ASGScaleUpPolicyThreshold"
+                },
+                "ComparisonOperator": "GreaterThanThreshold",
+                "Statistic": {
+                    "Ref": "ASGScaleUpPolicyStatistic"
+                },
+                "Dimensions": [
+                    {
+                        "Name": "AutoScalingGroupName",
+                        "Value": {
+                            "Ref": "ASG"
+                        }
+                    }
+                ],
+                "AlarmDescription": "Autoscale Scale Up Alarm",
+                "Namespace": "AWS/EC2",
+                "MetricName": {
+                    "Ref": "ASGScaleUpMetricName"
+                },
+                "ActionsEnabled": "true",
+                "AlarmActions": [
+                    {
+                        "Ref": "ASGScaleUpPolicy"
+                    }
+                ]
+            }
+        },
+        "ASGLaunchConfig": {
+            "Metadata": {
+                "AWS::CloudFormation::Init": {
+                    "configSets": {
+                        "docker_install": [
+                            "install_cfn",
+                            "install_docker"
+                        ]
+                    },
+                    "install_docker": {
+                        "packages": {
+                            "yum": {
+                                "docker": []
+                            }
+                        },
+                        "services": {
+                            "sysvinit": {
+                                "docker": {
+                                    "ensureRunning": "true",
+                                    "enabled": "true"
+                                }
+                            }
+                        }
+                    },
+                    "install_cfn": {
+                        "files": {
+                            "/etc/cfn/hooks.d/cfn-auto-reloader.conf": {
+                                "mode": "000400",
+                                "content": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "[cfn-auto-reloader-hook]\n",
+                                            "triggers=post.update\n",
+                                            "path=Resources.LaunchConfiguration.Metadata.AWS::CloudFormation::Init\n",
+                                            "action=/opt/aws/bin/cfn-init -v ",
+                                            "         --stack ",
+                                            {
+                                                "Ref": "AWS::StackName"
+                                            },
+                                            "         --resource LaunchConfiguration ",
+                                            "         --configsets docker_isntall ",
+                                            "         --region ",
+                                            {
+                                                "Ref": "AWS::Region"
+                                            },
+                                            "\n"
+                                        ]
+                                    ]
+                                },
+                                "group": "root",
+                                "owner": "root"
+                            },
+                            "/etc/cfn/cfn-hup.conf": {
+                                "mode": "000400",
+                                "content": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "[main]\n",
+                                            "stack=",
+                                            {
+                                                "Ref": "AWS::StackId"
+                                            },
+                                            "\n",
+                                            "region=",
+                                            {
+                                                "Ref": "AWS::Region"
+                                            },
+                                            "\n"
+                                        ]
+                                    ]
+                                },
+                                "group": "root",
+                                "owner": "root"
+                            }
+                        },
+                        "services": {
+                            "sysvinit": {
+                                "cfn-hup": {
+                                    "ensureRunning": "true",
+                                    "enabled": "true",
+                                    "files": [
+                                        "/etc/cfn/cfn-hup.conf",
+                                        "/etc/cfn/hooks.d/cfn-auto-reloader.conf"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "Type": "AWS::AutoScaling::LaunchConfiguration",
+            "Properties": {
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Join": [
+                            "",
+                            [
+                                "#!/bin/bash -xe\n",
+                                "yum update -y aws-cfn-bootstrap\n",
+                                "/opt/aws/bin/cfn-init -v ",
+                                "         --stack ",
+                                {
+                                    "Ref": "AWS::StackName"
+                                },
+                                "         --resource ASGLaunchConfig ",
+                                "         --configsets docker_install ",
+                                "         --region ",
+                                {
+                                    "Ref": "AWS::Region"
+                                },
+                                "\n",
+                                "/opt/aws/bin/cfn-signal -e $? ",
+                                "         --stack ",
+                                {
+                                    "Ref": "AWS::StackName"
+                                },
+                                "         --resource ASGLaunchConfig ",
+                                "         --region ",
+                                {
+                                    "Ref": "AWS::Region"
+                                },
+                                "\n"
+                            ]
+                        ]
+                    }
+                },
+                "SecurityGroups": [
+                    {
+                        "Fn::ImportValue": {
+                            "Fn::Sub": "SentinelDefaultSecurityGroupPrivateOnly-${AWS::Region}"
+                        }
+                    },
+                    {
+                        "Fn::ImportValue": {
+                            "Fn::Sub": "SentinelDefaultSecurityGroupPrivateOnlyEgressAll-${AWS::Region}"
+                        }
+                    }
+                ],
+                "ImageId": {
+                    "Ref": "ASGAmiId"
+                },
+                "BlockDeviceMappings": [
+                    {
+                        "Ebs": {
+                            "Iops": {
+                                "Fn::If": [
+                                    "IsInstanceIo1RootVolumeType",
+                                    {
+                                        "Ref": "ASGInstanceRootVolumeIops"
+                                    },
+                                    {
+                                        "Ref": "AWS::NoValue"
+                                    }
+                                ]
+                            },
+                            "VolumeSize": {
+                                "Ref": "ASGInstanceRootVolumeSize"
+                            },
+                            "DeleteOnTermination": "true",
+                            "VolumeType": {
+                                "Ref": "ASGInstanceRootVolumeType"
+                            }
+                        },
+                        "DeviceName": {
+                            "Ref": "ASGInstanceRootVolumeName"
+                        }
+                    }
+                ],
+                "IamInstanceProfile": {
+                    "Fn::Join": [
+                        "",
+                        [
+                            "arn:aws:iam::",
+                            {
+                                "Ref": "AWS::AccountId"
+                            },
+                            ":instance-profile/",
+                            {
+                                "Ref": "ASGIAMInstanceProfile"
+                            }
+                        ]
+                    ]
+                },
+                "EbsOptimized": {
+                    "Ref": "ASGEBSOptimized"
+                },
+                "InstanceMonitoring": {
+                    "Ref": "ASGInstanceDetailedMonitoring"
+                },
+                "InstanceType": {
+                    "Ref": "ASGInstanceType"
+                }
+            }
+        },
+        "ASGScaleDownPolicy": {
+            "Type": "AWS::AutoScaling::ScalingPolicy",
+            "Properties": {
+                "Cooldown": {
+                    "Ref": "ASGScaleDownPolicyCooldown"
+                },
+                "PolicyType": "SimpleScaling",
+                "AutoScalingGroupName": {
+                    "Ref": "ASG"
+                },
+                "ScalingAdjustment": {
+                    "Ref": "ASGScaleDownPolicyScalingAdjustment"
+                },
+                "AdjustmentType": "ChangeInCapacity"
+            }
+        },
+        "ASGAlarmLow": {
+            "Type": "AWS::CloudWatch::Alarm",
+            "Properties": {
+                "Period": {
+                    "Ref": "ASGScaleDownPolicyPeriod"
+                },
+                "EvaluationPeriods": {
+                    "Ref": "ASGScaleDownPolicyEvaluationPeriods"
+                },
+                "Threshold": {
+                    "Ref": "ASGScaleDownPolicyThreshold"
+                },
+                "ComparisonOperator": "LessThanThreshold",
+                "Statistic": {
+                    "Ref": "ASGScaleDownPolicyStatistic"
+                },
+                "Dimensions": [
+                    {
+                        "Name": "AutoScalingGroupName",
+                        "Value": {
+                            "Ref": "ASG"
+                        }
+                    }
+                ],
+                "AlarmDescription": "Autoscale Scale Down Alarm",
+                "Namespace": "AWS/EC2",
+                "MetricName": {
+                    "Ref": "ASGScaleDownMetricName"
+                },
+                "ActionsEnabled": "true",
+                "AlarmActions": [
+                    {
+                        "Ref": "ASGScaleDownPolicy"
+                    }
+                ]
+            }
+        },
+        "ASG": {
+            "Type": "AWS::AutoScaling::AutoScalingGroup",
+            "Properties": {
+                "HealthCheckGracePeriod": {
+                    "Ref": "ASGHealthCheckGracePeriod"
+                },
+                "DesiredCapacity": {
+                    "Ref": "ASGDesiredCapacity"
+                },
+                "MinSize": {
+                    "Ref": "ASGMinInstances"
+                },
+                "MaxSize": {
+                    "Ref": "ASGMaxInstances"
+                },
+                "Cooldown": {
+                    "Ref": "ASGCooldown"
+                },
+                "HealthCheckType": {
+                    "Ref": "ASGHealthCheckType"
+                },
+                "LoadBalancerNames": {
+                    "Fn::If": [
+                        "HasELB",
+                        {
+                            "Ref": "ASGLoadBalancerNames"
+                        },
+                        {
+                            "Ref": "AWS::NoValue"
+                        }
+                    ]
+                },
+                "VPCZoneIdentifier": {
+                    "Ref": "ASGSubnetIds"
+                },
+                "LaunchConfigurationName": {
+                    "Ref": "ASGLaunchConfig"
+                }
+            },
+            "CreationPolicy": {
+                "ResourceSignal": {
+                    "Count": {
+                        "Ref": "ASGDesiredCapacity"
+                    },
+                    "Timeout": "PT12H"
+                }
+            },
+            "UpdatePolicy": {
+                "AutoScalingRollingUpdate": {
+                    "SuspendProcesses": [
+                        "HealthCheck",
+                        "ReplaceUnhealthy",
+                        "AZRebalance",
+                        "AlarmNotification",
+                        "ScheduledActions"
+                    ],
+                    "MaxBatchSize": {
+                        "Ref": "ASGMaxBatchSize"
+                    },
+                    "PauseTime": "PT1H",
+                    "MinInstancesInService": {
+                        "Ref": "ASGMinInstancesInService"
+                    },
+                    "WaitOnResourceSignals": "true"
+                }
+            }
+        },
+        "ASGScaleUpPolicy": {
+            "Type": "AWS::AutoScaling::ScalingPolicy",
+            "Properties": {
+                "Cooldown": {
+                    "Ref": "ASGScaleUpPolicyCooldown"
+                },
+                "PolicyType": "SimpleScaling",
+                "AutoScalingGroupName": {
+                    "Ref": "ASG"
+                },
+                "ScalingAdjustment": {
+                    "Ref": "ASGScaleUpPolicyScalingAdjustment"
+                },
+                "AdjustmentType": "ChangeInCapacity"
+            }
+        }
+    },
+    "Metadata": {
+        "RevisionDate": "03-Aug-2016"
+    },
+    "Description": "Creates an EC2 Auto Scaling Group",
+    "Conditions": {
+        "IsInstanceIo1RootVolumeType": {
+            "Fn::Equals": [
+                {
+                    "Ref": "ASGInstanceRootVolumeType"
+                },
+                "io1"
+            ]
+        },
+        "HasELB": {
+            "Fn::Not": [
+                {
+                    "Fn::Equals": [
+                        "",
+                        {
+                            "Fn::Join": [
+                                ",",
+                                {
+                                    "Ref": "ASGLoadBalancerNames"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    },
+    "Outputs": {
+        "ASGName": {
+            "Description": "Auto Scaling Group name",
+            "Value": {
+                "Ref": "ASG"
+            }
+        }
+    }
+}

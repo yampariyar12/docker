@@ -1,0 +1,17 @@
+{
+  "name": "webapp",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "dependencies": {
+    "http-server": "^0.9.0",
+    "mysql": "^2.10.2"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "prestart": "node ./seed_db.js",
+    "start": "node ./app.js"
+  },
+  "author": "",
+  "license": "ISC"
+}

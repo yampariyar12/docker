@@ -8,10 +8,11 @@ var con = mysql.createConnection({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME
+  database: process.env.DB_NAME,
+  port: 3306
 })
 
-con.connect(function(err){
+con.connect(function(err){curl 
   if(err){
     console.log('Error connecting to Db')
     process.exit(1)

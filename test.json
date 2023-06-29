@@ -1,0 +1,171 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "Create Elastic File System and allow EC2 Access",
+    "Parameters": {
+        "AppName": {
+            "Type": "String",
+            "Default": "thoughtspot"
+        },
+        "uai": {
+            "Type": "String",
+            "Default": "uai3032884"
+        },
+        "Env": {
+            "Type": "String",
+            "Default": "prd"
+        },
+        "PerformanceMode": {
+            "Type": "String",
+            "Default": "generalPurpose"
+        },
+        "KMSKey": {
+            "Type": "String",
+            "Default": "arn:aws:kms:us-east-1:381908589552:key/68ae4f2f-b0c3-402f-96c1-e7bc5f16deb8"
+        },
+        "Purpose": {
+            "Type": "String",
+            "Default": "lakehouse-trigger-files"
+        },
+        "SubnetIdAz1": {
+            "Type": "String",
+            "Default": "subnet-0eb6a12c18cae12b1"
+        },
+        "SubnetIdAz2": {
+            "Type": "String",
+            "Default": "subnet-007897266381ad4e9"
+        }
+    },
+    "Resources": {
+        "FileSystem": {
+            "Type": "AWS::EFS::FileSystem",
+            "Properties": {
+                "FileSystemTags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Ref": "AWS::StackName"
+                        }
+                    },
+                    {
+                        "Key": "app",
+                        "Value": {
+                            "Ref": "AppName"
+                        }
+                    },
+                    {
+                        "Key": "uai",
+                        "Value": {
+                            "Ref": "uai"
+                        }
+                    },
+                    {
+                        "Key": "env",
+                        "Value": {
+                            "Ref": "Env"
+                        }
+                    },
+                    {
+                        "Key": "Purpose",
+                        "Value": {
+                            "Ref": "Purpose"
+                        }
+                    }
+                ],
+                "PerformanceMode": {
+                    "Ref": "PerformanceMode"
+                },
+                "KmsKeyId": {
+                    "Ref": "KMSKey"
+                },
+                "Encrypted": true
+            }
+        },
+        "MountTarget1": {
+            "Type": "AWS::EFS::MountTarget",
+            "Properties": {
+                "FileSystemId": {
+                    "Ref": "FileSystem"
+                },
+                "SubnetId": {
+                    "Ref": "SubnetIdAz1"
+                },
+                "SecurityGroups": [
+                    {
+                        "Ref": "FCThoughtspotEfsSecurityGroup"
+                    }
+                ]
+            }
+        },
+        "MountTarget2": {
+            "Type": "AWS::EFS::MountTarget",
+            "Properties": {
+                "FileSystemId": {
+                    "Ref": "FileSystem"
+                },
+                "SubnetId": {
+                    "Ref": "SubnetIdAz2"
+                },
+                "SecurityGroups": [
+                    {
+                        "Ref": "FCThoughtspotEfsSecurityGroup"
+                    }
+                ]
+            }
+        },
+        "FCThoughtspotEfsSecurityGroup": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "GroupDescription": "Instance to EFS Mount Access",
+                "VpcId": "vpc-0f8217dd1417d3990",
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Ref": "AWS::StackName"
+                        }
+                    },
+                    {
+                        "Key": "app",
+                        "Value": {
+                            "Ref": "AppName"
+                        }
+                    },
+                    {
+                        "Key": "uai",
+                        "Value": {
+                            "Ref": "uai"
+                        }
+                    },
+                    {
+                        "Key": "env",
+                        "Value": {
+                            "Ref": "Env"
+                        }
+                    }
+                ],
+                "SecurityGroupEgress": [
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": 1,
+                        "ToPort": 65000,
+                        "CidrIp": "0.0.0.0/0"
+                    }
+                ]
+            }
+        }
+    },
+    "Outputs": {
+        "FileSystem": {
+            "Description": "FileSystem",
+            "Value": {
+                "Ref": "FileSystem"
+            }
+        },
+        "FCThoughtspotEfsSecurityGroup": {
+            "Description": "FCThoughtspotEfsSecurityGroup",
+            "Value": {
+                "Ref": "FCThoughtspotEfsSecurityGroup"
+            }
+        }
+    }
+}

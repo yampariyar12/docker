@@ -11,7 +11,7 @@ var con = mysql.createConnection({
   database: process.env.DB_NAME
 })
 
-con.connect(function(err){curl 
+con.connect(function(err){
   if(err){
     console.log('Error connecting to Db')
     process.exit(1)
